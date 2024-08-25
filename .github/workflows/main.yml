@@ -1,0 +1,49 @@
+name: Check rweekly.org and Update Weaviate
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Runs every hour. Adjust as needed.
+  workflow_dispatch:  # Allows manual triggering of the workflow
+
+jobs:
+  check-and-update:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout rweekly_dashboard Repository
+      uses: actions/checkout@v3
+
+    - name: Check Latest Commit in rweekly.org
+      run: |
+        git clone --depth=1 https://github.com/mcnakhaee/Dutch-Events.git
+        cd rweekly.org
+        latest_commit=$(git rev-parse HEAD)
+        echo "Latest commit in rweekly.org: $latest_commit"
+
+        # Store the latest commit hash in a file for comparison
+        echo "$latest_commit" > ../latest_commit_rweekly.txt
+
+    - name: Compare Commits and Update Database
+      run: |
+        if [ -f previous_commit_rweekly.txt ]; then
+          previous_commit=$(cat previous_commit_rweekly.txt)
+        else
+          previous_commit=""
+        fi
+
+        latest_commit=$(cat latest_commit_rweekly.txt)
+
+        if [ "$previous_commit" != "$latest_commit" ]; then
+          echo "rweekly.org has been updated. Running the update script."
+          # Run your update script
+          python get_data.py  # Replace with your actual script name
+
+          # Save the new commit hash for future comparison
+          echo "$latest_commit" > previous_commit_rweekly.txt
+        else
+          echo "No changes detected in rweekly.org."
+        fi
+
+    - name: Cleanup
+      run: |
+        rm -rf rweekly.org latest_commit_rweekly.txt  # Clean up cloned repo and temp files
