@@ -15,7 +15,7 @@ jobs:
 
     - name: Check Latest Commit in rweekly.org
       run: |
-        git clone --depth=1 https://github.com/mcnakhaee/jobzoeker.git
+        git clone --depth=1 https://github.com/mcnakhaee/Dutch-Events.git
         cd rweekly.org
         latest_commit=$(git rev-parse HEAD)
         echo "Latest commit in rweekly.org: $latest_commit"
