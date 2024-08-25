@@ -1,36 +1,49 @@
-# This is a basic workflow to help you get started with Actions
+name: Check rweekly.org and Update Weaviate
 
-name: CI
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  schedule:
+    - cron: '0 * * * *'  # Runs every hour. Adjust as needed.
+  workflow_dispatch:  # Allows manual triggering of the workflow
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  check-and-update:
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+    - name: Checkout rweekly_dashboard Repository
+      uses: actions/checkout@v3
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+    - name: Check Latest Commit in rweekly.org
+      run: |
+        git clone --depth=1 https://github.com/rweekly/rweekly.org.git
+        cd rweekly.org
+        latest_commit=$(git rev-parse HEAD)
+        echo "Latest commit in rweekly.org: $latest_commit"
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+        # Store the latest commit hash in a file for comparison
+        echo "$latest_commit" > ../latest_commit_rweekly.txt
+
+    - name: Compare Commits and Update Database
+      run: |
+        if [ -f previous_commit_rweekly.txt ]; then
+          previous_commit=$(cat previous_commit_rweekly.txt)
+        else
+          previous_commit=""
+        fi
+
+        latest_commit=$(cat latest_commit_rweekly.txt)
+
+        if [ "$previous_commit" != "$latest_commit" ]; then
+          echo "rweekly.org has been updated. Running the update script."
+          # Run your update script
+          python get_data.py  # Replace with your actual script name
+
+          # Save the new commit hash for future comparison
+          echo "$latest_commit" > previous_commit_rweekly.txt
+        else
+          echo "No changes detected in rweekly.org."
+        fi
+
+    - name: Cleanup
+      run: |
+        rm -rf rweekly.org latest_commit_rweekly.txt  # Clean up cloned repo and temp files
