@@ -16,7 +16,7 @@ jobs:
     - name: Check Latest Commit in rweekly.org
       run: |
         git clone --depth=1 https://github.com/mcnakhaee/Dutch-Events.git
-        cd rweekly.org
+        cd Dutch-Events
         latest_commit=$(git rev-parse HEAD)
         echo "Latest commit in rweekly.org: $latest_commit"
 
@@ -46,4 +46,4 @@ jobs:
 
     - name: Cleanup
       run: |
-        rm -rf rweekly.org latest_commit_rweekly.txt  # Clean up cloned repo and temp files
+        rm -rf Dutch-Events latest_commit_rweekly.txt  # Clean up cloned repo and temp files
