@@ -22,7 +22,9 @@ jobs:
 
         # Store the latest commit hash in a file for comparison
         echo "$latest_commit" > ../latest_commit_rweekly.txt
-
+    - name: Install dependencies
+      run: |
+          pip install -r requirements_collect_data.txt
     - name: Compare Commits and Update Database
       run: |
         if [ -f previous_commit_rweekly.txt ]; then
